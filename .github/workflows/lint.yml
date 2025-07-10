@@ -24,7 +24,7 @@ jobs:
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: 📦 Sync all dependencies
-        run: uv sync --all-groups --system
+        run: uv sync --system
 
       - name: 🧪 Run Ruff (linter)
         run: uv pip run ruff check .
