@@ -1,0 +1,36 @@
+name: Bump Version and Generate Changelog
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    name: 🧾 Bump version and tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: ⚡ Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: 📦 Sync all dev dependencies
+        run: uv sync --all-groups
+
+      - name: 🏷️ Run Commitizen bump with changelog
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          uv run cz bump --changelog --yes
+          git push origin HEAD --follow-tags
