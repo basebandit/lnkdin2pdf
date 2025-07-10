@@ -69,7 +69,20 @@ uv run main.py --url https://www.linkedin.com/posts/activity-1234567890123456789
 ### Convert from a file (CSV or TXT)
 
 ```bash
-uv run main.py --file posts.csv
+uv run main.py --file urls.txt 
+✅ Found 3 valid LinkedIn URLs.
+🔗 Processing: https://www.linkedin.com/posts/samueltillman_terraform-init-terraform-fmt-activity-7344004419039969280-J2Y8
+🔍 Visiting https://www.linkedin.com/posts/samueltillman_terraform-init-terraform-fmt-activity-7344004419039969280-J2Y8
+🚪 Dismissing login modal (button.contextual-sign-in-modal__modal-dismiss)...
+📄 PDF saved to: output/linkedin_post_665925.pdf
+🔗 Processing: https://www.linkedin.com/posts/ownyourai_ive-watched-what-might-be-the-worlds-first-ugcPost-7343727903198646272-H8BK
+🔍 Visiting https://www.linkedin.com/posts/ownyourai_ive-watched-what-might-be-the-worlds-first-ugcPost-7343727903198646272-H8BK
+🚪 Dismissing login modal (button.contextual-sign-in-modal__modal-dismiss)...
+📄 PDF saved to: output/linkedin_post_675136.pdf
+🔗 Processing: https://www.linkedin.com/posts/linasbeliunas_rip-google-chrome-perplexity-just-launched-ugcPost-7348790664991490048-90eZ
+🔍 Visiting https://www.linkedin.com/posts/linasbeliunas_rip-google-chrome-perplexity-just-launched-ugcPost-7348790664991490048-90eZ
+🚪 Dismissing login modal (button.contextual-sign-in-modal__modal-dismiss)...
+📄 PDF saved to: output/linkedin_post_633525.pdf
 ```
 > File should contain one URL per line (in .txt) or first column only (in .csv)
 
