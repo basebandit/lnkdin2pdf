@@ -1,0 +1,40 @@
+[project]
+name = "linkedin-to-pdf"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "jinja2>=3.1.6",
+    "playwright>=1.53.0",
+    "python-dotenv>=1.1.1",
+    "requests>=2.32.4",
+    "validators>=0.35.0",
+    "weasyprint>=65.1",
+]
+
+[dependency-groups]
+dev = [
+    "black>=25.1.0",
+    "commitizen>=4.8.3",
+    "mypy>=1.16.1",
+    "pre-commit>=4.2.0",
+    "ruff>=0.12.2",
+    "types-requests>=2.32.4.20250611",
+]
+
+[tool.mypy]
+install_types = true
+non_interactive = true
+python_version = "3.12"
+strict = true
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.1.0"
+tag_format = "v$version"
+version_files = ["pyproject.toml"]
+bump_message = "bump: version $current_version → $new_version"
+update_changelog_on_bump = true
+annotated_tag = true
+
