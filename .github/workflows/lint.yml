@@ -1,0 +1,38 @@
+name: Lint and Verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    name: 🧹 Lint
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: ⚡ Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: 📦 Sync all dependencies
+        run: uv sync --all-groups --system
+
+      - name: 🧪 Run Ruff (linter)
+        run: uv pip run ruff check .
+
+      - name: ✅ Check commit message format (Conventional Commits)
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
+          latest_commit="$(git log -1 --pretty=%B)"
+          echo "Checking commit: $latest_commit"
+          echo "$latest_commit" | cz check || (echo "❌ Invalid commit message" && exit 1)
