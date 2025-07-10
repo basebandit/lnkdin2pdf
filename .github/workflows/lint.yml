@@ -24,10 +24,10 @@ jobs:
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: 📦 Sync all dependencies
-        run: uv sync --system
+        run: uv sync --all-groups
 
       - name: 🧪 Run Ruff (linter)
-        run: uv pip run ruff check .
+        run: uv run ruff check .
 
       - name: ✅ Check commit message format (Conventional Commits)
         if: github.event_name == 'pull_request'
@@ -35,4 +35,4 @@ jobs:
           git fetch origin ${{ github.event.pull_request.base.ref }} --depth=1
           latest_commit="$(git log -1 --pretty=%B)"
           echo "Checking commit: $latest_commit"
-          echo "$latest_commit" | cz check || (echo "❌ Invalid commit message" && exit 1)
+          echo "$latest_commit" | uv run cz check || (echo "❌ Invalid commit message" && exit 1)
