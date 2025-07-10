@@ -51,7 +51,6 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git remote set-url origin https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}
           uv run cz bump --changelog --yes
-          # Push to a new release branch
           git checkout -b release/v${{ steps.check_tag.outputs.new_version }}
           git push origin release/v${{ steps.check_tag.outputs.new_version }} --follow-tags
 
@@ -68,10 +67,28 @@ jobs:
           base: main
           delete-branch: true
 
+      - name: 🕰️ Wait for PR to be available
+        if: steps.check_tag.outputs.skip_bump == 'false'
+        run: |
+          for i in {1..5}; do
+            pr=$(gh pr list --state open --head release/v${{ steps.check_tag.outputs.new_version }} --json number -q '.[0].number' || true)
+            if [ -n "$pr" ]; then
+              echo "Found PR #$pr"
+              echo "pr_number=$pr" >> $GITHUB_ENV
+              break
+            fi
+            echo "Waiting for PR to become available... ($i)"
+            sleep $((i * 2))
+          done
+          if [ -z "$pr" ]; then
+            echo "❌ Pull request not found after retrying."
+            exit 1
+          fi
+
       - name: ✅ Enable GitHub auto-merge (rebase)
         if: steps.check_tag.outputs.skip_bump == 'false'
         uses: peter-evans/enable-pull-request-automerge@v3
         with:
           token: ${{ secrets.GH_PAT }}
-          pull-request-number: ${{ steps.cpr.outputs.pull-request-number }}
+          pull-request-number: ${{ env.pr_number }}
           merge-method: rebase
