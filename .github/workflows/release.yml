@@ -26,7 +26,7 @@ jobs:
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: 📦 Sync runtime dependencies
-        run: uv sync --system
+        run: uv sync --all-groups
 
       - name: 🛠 Install build backend
         run: uv pip install --system build
@@ -34,11 +34,11 @@ jobs:
       - name: 🏗️ Build Python package
         run: python -m build
 
-      - name: 🚀 Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@v1.8.11
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_API_TOKEN }}
+      # - name: 🚀 Publish to PyPI
+      #   uses: pypa/gh-action-pypi-publish@v1.8.11
+      #   with:
+      #     user: __token__
+      #     password: {{ secrets.PYPI_API_TOKEN }}
 
       - name: 📋 Extract latest changelog section
         id: changelog
