@@ -43,7 +43,7 @@ jobs:
           fi
 
       - name: 🏷️ Run Commitizen bump with changelog
-        if: steps.check_tag.outputs.skip_bump == 'false'
+        if: ${{ steps.check_tag.outputs.skip_bump == 'false' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
