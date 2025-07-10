@@ -1,0 +1,56 @@
+name: Release Python Package
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write  # needed to create GitHub releases
+
+jobs:
+  release:
+    name: 📦 Build and Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: ⬇️ Checkout code
+        uses: actions/checkout@v4
+
+      - name: 🐍 Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: ⚡ Install uv
+        run: curl -LsSf https://astral.sh/uv/install.sh | sh
+
+      - name: 📦 Sync runtime dependencies
+        run: uv sync --system
+
+      - name: 🛠 Install build backend
+        run: uv pip install --system build
+
+      - name: 🏗️ Build Python package
+        run: python -m build
+
+      - name: 🚀 Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@v1.8.11
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_API_TOKEN }}
+
+      - name: 📋 Extract latest changelog section
+        id: changelog
+        run: |
+          tag="${GITHUB_REF#refs/tags/}"
+          awk "/^##?\\s*${tag//./\\.}/,/^##/" CHANGELOG.md | sed '$d' > _release_notes.md || echo "ℹ️ No changelog entry found for ${tag}" > _release_notes.md
+
+      - name: 📦 Create GitHub Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          body_path: _release_notes.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
