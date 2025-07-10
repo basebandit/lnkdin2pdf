@@ -32,7 +32,7 @@ jobs:
       - name: 🚫 Skip bump if tag already exists
         id: check_tag
         run: |
-          version=$(uv run cz version)
+          version=$(awk -F'"' '/^\s*version\s*=/ { print $2; exit }' pyproject.toml)
           tag="v$version"
           echo "new_version=$version" >> $GITHUB_OUTPUT
           if git rev-parse "$tag" >/dev/null 2>&1; then
@@ -44,16 +44,20 @@ jobs:
 
       - name: 🏷️ Run Commitizen bump with changelog
         if: ${{ steps.check_tag.outputs.skip_bump == 'false' }}
+        env:
+          GIT_AUTH_TOKEN: ${{ secrets.GH_PAT }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${GIT_AUTH_TOKEN}@github.com/${{ github.repository }}
           uv run cz bump --changelog --yes
+          git push origin HEAD --follow-tags
 
       - name: 🚀 Create release PR
         if: steps.check_tag.outputs.skip_bump == 'false'
         uses: peter-evans/create-pull-request@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_PAT }}
           commit-message: "bump: release v${{ steps.check_tag.outputs.new_version }}"
           branch: release/v${{ steps.check_tag.outputs.new_version }}
           title: "🔖 Release v${{ steps.check_tag.outputs.new_version }}"
@@ -66,7 +70,7 @@ jobs:
         if: steps.check_tag.outputs.skip_bump == 'false'
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_PAT }}
           script: |
             const prList = await github.rest.pulls.list({
               owner: context.repo.owner,
