@@ -38,3 +38,10 @@ bump_message = "bump: version $current_version → $new_version"
 update_changelog_on_bump = true
 annotated_tag = true
 
+[tool.setuptools]
+packages = ["pdf", "scraper"]
+
+# optional: include templates as non-code files
+[tool.setuptools.package-data]
+"pdf" = ["*.html"]
+"scraper" = ["*.html"]
