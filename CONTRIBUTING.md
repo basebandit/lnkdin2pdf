@@ -56,17 +56,11 @@ We use [Commitizen](https://commitizen-tools.github.io/commitizen/) to enforce [
 
 To commit:
 
-```bash
-cz commit
-```
-
-Or manually use this format:
-
 ```text
 <type>(<scope>): short description
 
 e.g.:
-feat(scraper): add image extraction for posts
+git commit -m "feat(scraper): add image extraction for posts"
 ```
 
 Types include `feat`, `fix`, `docs`, `chore`, `refactor`, etc.
