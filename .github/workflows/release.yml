@@ -30,6 +30,9 @@ jobs:
       - name: 📦 Sync all dependencies
         run: uv sync --all-groups
 
+      - name: 🛠 Install build backend
+        run: uv pip install build
+      
       - name: 🏗️ Build Python package
         run: uv run python -m build
 
