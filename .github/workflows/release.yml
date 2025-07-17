@@ -3,7 +3,7 @@ name: Release Python Package
 on:
   push:
     tags:
-      - 'v*'
+      - 'v*'  # this will be created by cz bump
 
 permissions:
   contents: write  # Needed to create GitHub releases
@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: ⬇️ Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Required for Commitizen to detect full git history
 
       - name: 🐍 Set up Python
         uses: actions/setup-python@v5
@@ -25,40 +27,29 @@ jobs:
       - name: ⚡ Install uv
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
-      - name: 📦 Sync runtime dependencies
+      - name: 📦 Sync all dependencies
         run: uv sync --all-groups
 
-      - name: 🛠 Install build backend
-        run: uv pip install build
+      - name: 🚀 Bump version, tag, and generate changelog with Commitizen
+        run: uv run cz bump --yes --changelog
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 🏗️ Build Python package
         run: uv run python -m build
-
-      # Uncomment this block if you're ready to publish to PyPI
-      # - name: 🚀 Publish to PyPI
-      #   uses: pypa/gh-action-pypi-publish@v1.8.11
-      #   with:
-      #     user: __token__
-      #     password: ${{ secrets.PYPI_API_TOKEN }}
-
-      - name: 📋 Extract latest changelog section
-        id: changelog
-        run: |
-          tag="${GITHUB_REF#refs/tags/}"
-          echo "Looking for changelog entry for $tag"
-          changelog=$(awk "/^##?\\s*${tag//./\\.}/,/^##/" CHANGELOG.md | sed '$d')
-          if [ -z "$changelog" ]; then
-            echo "ℹ️ No changelog entry found for $tag"
-            echo "No changelog available for this release." > _release_notes.md
-          else
-            echo "$changelog" > _release_notes.md
-          fi
 
       - name: 📦 Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ github.ref_name }}
           name: Lnkin2pdf ${{ github.ref_name }}
-          body_path: _release_notes.md
+          body_path: CHANGELOG.md
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # Optional: Publish to PyPI
+      # - name: 🚀 Publish to PyPI
+      #   uses: pypa/gh-action-pypi-publish@v1.8.11
+      #   with:
+      #     user: __token__
+      #     password: ${{ secrets.PYPI_API_TOKEN }}
