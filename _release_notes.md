@@ -1,6 +1,8 @@
-## v0.3.0 (2025-07-17)
+## v0.3.1 (2025-07-17)
 
-### Feat
+### Fix
 
-- **release**: add a pre-release workflow
-- **template**: lint template
+- **pre-release**: commit generate release notes
+- **release**: remove duplicate step
+- **release**: install build tool
+
