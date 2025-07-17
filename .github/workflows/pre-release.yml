@@ -49,6 +49,6 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git checkout -b release/${{ steps.cz.outputs.version }}
-          git add pyproject.toml CHANGELOG.md uv.lock || true
+          git add pyproject.toml CHANGELOG.md uv.lock _release_notes.md || true
           git commit -m "chore(release): prepare ${{ steps.cz.outputs.version }}"
           git push origin release/${{ steps.cz.outputs.version }}
