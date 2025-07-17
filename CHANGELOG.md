@@ -1,3 +1,16 @@
+## v0.3.0 (2025-07-17)
+
+### Feat
+
+- **release**: add a pre-release workflow
+- **template**: lint template
+
+## v0.2.1 (2025-07-17)
+
+### Feat
+
+- **changelog**: generate changelog with cz and reference the changelog in release
+
 ## v0.2.0 (2025-07-17)
 
 ### Feat

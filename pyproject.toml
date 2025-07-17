@@ -1,6 +1,6 @@
 [project]
 name = "linkedin-to-pdf"
-version = "0.2.0"
+version = "0.3.0"
 description = "Convert public LinkedIn posts (including text and images) to clean, high-quality PDF documents using Playwright and WeasyPrint"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -32,7 +32,7 @@ strict = true
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.2.0"
+version = "0.3.0"
 tag_format = "v$version"
 version_files = ["pyproject.toml"]
 bump_message = "bump: version $current_version → $new_version"
