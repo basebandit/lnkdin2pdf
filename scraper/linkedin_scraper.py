@@ -1,13 +1,18 @@
-from dataclasses import dataclass
-from urllib.parse import urlparse, urlunparse
-from pathlib import Path
-import aiohttp
 import asyncio
+import aiohttp
 import mimetypes
+from dataclasses import dataclass
+from pathlib import Path
+from urllib.parse import urlparse, urlunparse
 from playwright.async_api import (
-    async_playwright,
     TimeoutError as PlaywrightTimeoutError,
 )
+from playwright.async_api import (
+    async_playwright,
+)
+from utils.logger import configure_logger
+
+logger = configure_logger()
 
 
 @dataclass
@@ -56,11 +61,11 @@ async def extract_post_content(url: str, debug: bool = False) -> LinkedInPost:
         context = await browser.new_context()
         page = await context.new_page()
 
-        print(f"🔍 Visiting {clean_url}")
+        logger.info(f"Visiting {clean_url}")
         await page.goto(clean_url, timeout=60000)
         await asyncio.sleep(3)
 
-        # Dismiss login modal
+        # Try dismissing login modal
         dismiss_selectors = [
             "button.contextual-sign-in-modal__modal-dismiss",
             "button.sign-in-modal__dismiss",
@@ -69,14 +74,14 @@ async def extract_post_content(url: str, debug: bool = False) -> LinkedInPost:
             try:
                 button = page.locator(selector)
                 if await button.is_visible():
-                    print(f"🚪 Dismissing login modal ({selector})...")
+                    logger.info(f"Dismissing login modal ({selector})...")
                     await button.click()
                     await page.wait_for_timeout(2000)
                     break
             except PlaywrightTimeoutError:
                 continue
 
-        # 🚫 Check if post is unavailable
+        # Check for no-content card (private/unavailable)
         try:
             if await page.locator("div.no-content-card").is_visible():
                 raise RuntimeError(
@@ -85,7 +90,7 @@ async def extract_post_content(url: str, debug: bool = False) -> LinkedInPost:
         except PlaywrightTimeoutError:
             pass
 
-        # Extract post text
+        # Try known selectors to extract text
         content = None
         selectors = [
             "div.update-components-text__text-view",
@@ -109,6 +114,7 @@ async def extract_post_content(url: str, debug: bool = False) -> LinkedInPost:
             await page.screenshot(path="output/debug_failed_post.png", full_page=True)
             raise RuntimeError("Could not find post content with known selectors.")
 
+        # Extract images
         image_paths = []
         try:
             img_locator = page.locator('ul[data-test-id="feed-images-content"] img')
@@ -129,9 +135,9 @@ async def extract_post_content(url: str, debug: bool = False) -> LinkedInPost:
                             path = await download_image(session, final_url, dest_dir)
                             image_paths.append(path)
                         except Exception as e:
-                            print(f"⚠️ Failed to download image {final_url}: {e}")
+                            logger.error(f"Failed to download image {final_url}: {e}")
         except Exception as e:
-            print(f"⚠️ No images found: {e}")
+            logger.warning(f"No images found or failed to extract images: {e}")
 
         await browser.close()
 
