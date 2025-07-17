@@ -32,7 +32,7 @@ jobs:
         run: uv pip install build
 
       - name: 🏗️ Build Python package
-        run: python -m build
+        run: uv run python -m build
 
       # Uncomment this block if you're ready to publish to PyPI
       # - name: 🚀 Publish to PyPI
