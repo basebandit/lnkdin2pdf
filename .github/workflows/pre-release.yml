@@ -32,10 +32,6 @@ jobs:
       - name: 📝 Generate release notes
         run: |
           uv run cz bump --yes --changelog --files-only --dry-run | sed -n '/^##/,$p' > _release_notes.md
-      
-      - name: 📝 Generate release notes
-        run: |
-          uv run cz bump --yes --changelog --files-only --dry-run | sed -n '/^##/,$p' > _release_notes.md
   
       - name: 🔢 Get bump version
         id: cz
