@@ -1,5 +1,6 @@
 import argparse
 import asyncio
+import os
 from pathlib import Path
 
 from pdf.generator import generate_pdf
@@ -8,6 +9,10 @@ from utils.logger import configure_logger
 from utils.validators import clean_linkedin_url, is_valid_linkedin_url
 
 logger = configure_logger()
+
+
+def get_default_downloads_dir() -> Path:
+    return Path(os.path.expanduser("~/Downloads")).resolve()
 
 
 def read_input(input_path: Path) -> list[str]:
@@ -21,14 +26,14 @@ def read_input(input_path: Path) -> list[str]:
         raise ValueError("Unsupported file format. Use .txt or .csv")
 
 
-async def process_url(url: str, debug: bool = False) -> None:
+async def process_url(url: str, output_dir: Path, debug: bool = False) -> None:
     try:
         logger.info(f"Processing: {url}")
         post = await extract_post_content(clean_linkedin_url(url), debug=debug)
-        output_dir = Path("output")
-        output_dir.mkdir(exist_ok=True)
+        output_dir.mkdir(parents=True, exist_ok=True)
         filename = f"linkedin_post_{abs(hash(post.content)) % 999999}.pdf"
-        generate_pdf(post, output_dir / filename)
+        output_path = output_dir / filename
+        generate_pdf(post, output_path)
     except Exception as e:
         logger.error(f"Failed to process {url}: {e}")
 
@@ -39,13 +44,20 @@ async def main() -> None:
     parser.add_argument(
         "--file", type=Path, help="Path to .txt or .csv file with LinkedIn post URLs"
     )
+    parser.add_argument(
+        "-o",
+        "--output",
+        type=Path,
+        help="Directory to store generated PDFs. Defaults to ~/Downloads",
+    )
     parser.add_argument("-d", "--debug", action="store_true", help="Enable debug mode")
 
     args = parser.parse_args()
+    output_dir = args.output.resolve() if args.output else get_default_downloads_dir()
 
     if args.url:
         if is_valid_linkedin_url(args.url):
-            await process_url(args.url, debug=args.debug)
+            await process_url(args.url, output_dir=output_dir, debug=args.debug)
         else:
             logger.error("Invalid LinkedIn URL.", "error")
     elif args.file:
@@ -53,7 +65,7 @@ async def main() -> None:
         valid_urls = [u for u in urls if is_valid_linkedin_url(u)]
         logger.info(f"Found {len(valid_urls)} valid LinkedIn URLs.", "success")
         await asyncio.gather(
-            *(process_url(u, args.debug) for u in valid_urls),
+            *(process_url(u, output_dir, args.debug) for u in valid_urls),
             return_exceptions=True,  # Ensures one failure doesn't cancel all
         )
     else:
