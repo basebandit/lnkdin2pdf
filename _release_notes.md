@@ -1,8 +1,6 @@
-## v0.3.1 (2025-07-17)
+## v0.4.0 (2025-07-20)
 
-### Fix
+### Feat
 
-- **pre-release**: commit generate release notes
-- **release**: remove duplicate step
-- **release**: install build tool
+- **python**: add output directory flag and set default path
 
