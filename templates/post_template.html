@@ -6,14 +6,36 @@
     <style>
         body {
             font-family: 'Helvetica', sans-serif;
-            margin: 2em;
-            line-height: 1.6;
+            margin: 2em auto;
+            max-width: 850px;
+            line-height: 1.5;
             color: #333;
+            word-break: break-word;
         }
 
         .content {
-            font-size: 14pt;
+            font-size: 13.5pt;
             margin-bottom: 2em;
+            white-space: pre-wrap;
+        }
+
+        a {
+            color: #0a66c2;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        ul, ol {
+            margin-left: 1.8em;
+            margin-bottom: 1.2em;
+            padding-left: 0.5em;
+        }
+
+        li {
+            margin-bottom: 0.4em;
         }
 
         .images {
@@ -25,11 +47,16 @@
 
         .images img {
             width: 100%;
-            max-width: 800px; /* Limits width to a reasonable size for print */
+            max-width: 800px;
             height: auto;
             object-fit: contain;
             border-radius: 8px;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .section-heading {
+            {# margin-top: 1.2em; #}
+            font-weight: bold;
         }
     </style>
 </head>
