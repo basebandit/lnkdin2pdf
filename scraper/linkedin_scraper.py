@@ -1,15 +1,16 @@
 import asyncio
-import aiohttp
 import mimetypes
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import parse_qs, urlparse, urlunparse
+
+import aiohttp
+from bs4 import BeautifulSoup, Comment  # ✅ Correct import
 from playwright.async_api import (
     TimeoutError as PlaywrightTimeoutError,
-)
-from playwright.async_api import (
     async_playwright,
 )
+
 from utils.logger import configure_logger
 
 logger = configure_logger()
@@ -65,56 +66,70 @@ async def extract_post_content(url: str, debug: bool = False) -> LinkedInPost:
         await page.goto(clean_url, timeout=60000)
         await asyncio.sleep(3)
 
-        # Try dismissing login modal
-        dismiss_selectors = [
+        # Dismiss modal
+        for selector in [
             "button.contextual-sign-in-modal__modal-dismiss",
             "button.sign-in-modal__dismiss",
-        ]
-        for selector in dismiss_selectors:
+        ]:
             try:
                 button = page.locator(selector)
                 if await button.is_visible():
-                    logger.info(f"Dismissing login modal ({selector})...")
+                    logger.info(f"Dismissing modal: {selector}")
                     await button.click()
                     await page.wait_for_timeout(2000)
                     break
             except PlaywrightTimeoutError:
                 continue
 
-        # Check for no-content card (private/unavailable)
+        # Check if post is unavailable
         try:
             if await page.locator("div.no-content-card").is_visible():
-                raise RuntimeError(
-                    "Post is unavailable or private. You may need to log in."
-                )
+                raise RuntimeError("Post is unavailable or private.")
         except PlaywrightTimeoutError:
             pass
 
-        # Try known selectors to extract text
-        content = None
-        selectors = [
+        # Try known content selectors
+        html = None
+        for selector in [
             "div.update-components-text__text-view",
             "div.feed-shared-update-v2__description",
             "p.attributed-text-segment-list__content",
             "span[dir='ltr']",
-        ]
-        for selector in selectors:
+        ]:
             try:
                 await page.wait_for_selector(selector, timeout=5000)
                 locator = page.locator(selector).first
-                content = await locator.inner_text()
-                if content.strip():
-                    content = content.strip()
+                html = await locator.inner_html()
+                if html.strip():
                     break
             except PlaywrightTimeoutError:
                 continue
 
-        if not content:
+        if not html:
             Path("output/debug_failed_post.html").write_text(await page.content())
             await page.screenshot(path="output/debug_failed_post.png", full_page=True)
-            raise RuntimeError("Could not find post content with known selectors.")
+            raise RuntimeError("Could not extract post content.")
 
-        # Extract images
+        # ✅ Clean HTML and strip <Comment> nodes
+        soup = BeautifulSoup(html, "html.parser")
+        for comment in soup.find_all(string=lambda text: isinstance(text, Comment)):
+            comment.extract()
+
+        for tag in soup.find_all():
+            tag.attrs = {k: v for k, v in tag.attrs.items() if k == "href"}
+
+        # ✅ Fix LinkedIn mailto links
+        for a in soup.find_all("a", href=True):
+            href = a["href"]
+            if "linkedin.com/redir/redirect?" in href:
+                query = parse_qs(urlparse(href).query)
+                real_url = query.get("url", [href])[0]
+                if real_url.startswith("mailto:"):
+                    a["href"] = real_url
+
+        content = str(soup)
+
+        # ✅ Extract images
         image_paths = []
         try:
             img_locator = page.locator('ul[data-test-id="feed-images-content"] img')
@@ -140,5 +155,4 @@ async def extract_post_content(url: str, debug: bool = False) -> LinkedInPost:
             logger.warning(f"No images found or failed to extract images: {e}")
 
         await browser.close()
-
         return LinkedInPost(url=clean_url, content=content, image_paths=image_paths)
