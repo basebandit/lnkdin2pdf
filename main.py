@@ -59,7 +59,7 @@ async def main() -> None:
         if is_valid_linkedin_url(args.url):
             await process_url(args.url, output_dir=output_dir, debug=args.debug)
         else:
-            logger.error("Invalid LinkedIn URL.", "error")
+            logger.error("Invalid LinkedIn URL.")
     elif args.file:
         urls = read_input(args.file)
         valid_urls = [u for u in urls if is_valid_linkedin_url(u)]
